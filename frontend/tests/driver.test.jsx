@@ -29,17 +29,22 @@ test('driver publishing requires opt-in, gets an assigned grant, throttles write
   expect(trackingApi.publish).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: 'Start publishing my location' }));
   act(sample);
-  await act(async () => { vi.advanceTimersByTime(5000); });
+  await act(async () => {});
+  // The first fresh fix should publish immediately, without waiting a full
+  // interval while the public vehicle remains offline.
   expect(identityApi.trackingToken).toHaveBeenCalledWith('demo-a', 'access-token', expect.any(AbortSignal));
   expect(trackingApi.publish).toHaveBeenCalledTimes(1);
   expect(trackingApi.publish.mock.calls[0][0]).toBe('demo-a');
   expect(trackingApi.publish.mock.calls[0][1]).toBe('vehicle-grant');
-  await act(async () => { vi.advanceTimersByTime(1000); });
+  await act(async () => { vi.advanceTimersByTime(4999); sample(); });
   expect(trackingApi.publish).toHaveBeenCalledTimes(1);
+  await act(async () => { vi.advanceTimersByTime(1); });
+  expect(trackingApi.publish).toHaveBeenCalledTimes(2);
+  expect(identityApi.trackingToken).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole('button', { name: 'Stop publishing' }));
   expect(geolocation.clearWatch).toHaveBeenCalledWith(0);
   await act(async () => { vi.advanceTimersByTime(20000); });
-  expect(trackingApi.publish).toHaveBeenCalledTimes(1);
+  expect(trackingApi.publish).toHaveBeenCalledTimes(2);
   view.unmount();
   expect(vi.getTimerCount()).toBe(0);
 });

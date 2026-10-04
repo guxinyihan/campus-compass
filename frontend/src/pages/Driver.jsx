@@ -15,6 +15,7 @@ export default function Driver() {
   const location = useGeolocation(publishing);
   const stopLocation = location.stop;
   const position = useRef(null);
+  const publishCurrent = useRef(null);
   position.current = location.status === 'allowed' ? location.position : null;
 
   useEffect(() => {
@@ -30,13 +31,15 @@ export default function Driver() {
 
   useEffect(() => {
     if (!publishing || !vehicleId) return;
-    let active = true, busy = false, grant = null;
+    let active = true, busy = false, grant = null, lastAttempt = -Infinity;
     const controller = new AbortController();
     const publish = async () => {
       const fix = position.current;
       if (!active || busy) return;
       if (!fix || Date.now() - fix.timestamp > 20000 || fix.accuracy > 100) { setStatus('Waiting for a recent location fix with accuracy within 100 m.'); return; }
+      if (Date.now() - lastAttempt < 5000) return;
       busy = true;
+      lastAttempt = Date.now();
       try {
         if (!grant || grant.expiresAt < Date.now() + 15000) {
           const result = await identityApi.trackingToken(vehicleId, token, controller.signal);
@@ -51,10 +54,14 @@ export default function Driver() {
         if ([401, 403, 404].includes(failure.status)) { setPublishing(false); stopLocation(); }
       } finally { busy = false; }
     };
+    publishCurrent.current = publish;
     publish();
-    const interval = setInterval(publish, 5000);
-    return () => { active = false; controller.abort(); clearInterval(interval); grant = null; };
+    const interval = setInterval(publish, 1000);
+    return () => { active = false; controller.abort(); clearInterval(interval); grant = null; publishCurrent.current = null; };
   }, [publishing, vehicleId, token, stopLocation]);
+  useEffect(() => {
+    if (publishing && location.status === 'allowed') publishCurrent.current?.();
+  }, [publishing, location.status, location.position]);
 
   const selected = vehicles.find((vehicle) => vehicle.vehicleId === vehicleId);
   return <main className="workspace-page"><span className="eyebrow">Assigned driver</span><h1>Publish vehicle location</h1>
