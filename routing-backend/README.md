@@ -46,5 +46,21 @@ Tests use MockTransport and do not establish live integration. Native engine
 tests and actual container acceptance are separate evidence. Full service setup
 and current release gates are documented at the repository root.
 
+For native development, supply Java 21 and the official
+[GraphHopper 10.2 jar](https://repo1.maven.org/maven2/com/graphhopper/graphhopper-web/10.2/graphhopper-web-10.2.jar).
+Verify its SHA-256 against
+`ead763749c395ea0cc45b3fd10092d6de84d62fb5cbaf7d416ba6cc142c5716c`.
+From the repository root, generate a native configuration using
+`python scripts/native-graphhopper-config.py`, then run:
+
+```sh
+java -Xmx512m -jar /path/to/graphhopper-web-10.2.jar server work/graphhopper-native.yml
+```
+
+The generator preserves an existing native configuration, uses the same walking
+profile and canonical OSM input, places the cache in ignored `work/`, and binds
+engine/admin ports to loopback. Run the routing API separately as above. Native
+Java execution does not establish the Docker acceptance gate.
+
 Application code remains MIT, map data ODbL, GraphHopper Apache 2.0.
 See [data provenance](../docs/DATA_LICENSE_AND_PROVENANCE.md).

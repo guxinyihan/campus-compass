@@ -1,0 +1,85 @@
+name: CampusCompass checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run lint && npm test && npm run build
+        working-directory: frontend
+      - run: python scripts/check-boundaries.py
+  node-api:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8.0.18
+        ports: ['27017:27017']
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'quit(db.adminCommand(\"ping\").ok ? 0 : 1)'"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      MONGO_TEST_URI: mongodb://127.0.0.1:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - run: npm run lint && npm test
+        working-directory: backend
+  routing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: routing-backend/requirements*.txt
+      - run: pip install -r requirements-dev.txt
+        working-directory: routing-backend
+      - run: ruff check . && ruff format --check . && pytest -q
+        working-directory: routing-backend
+      - run: python scripts/validate-campus-data.py
+  tracking:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7.4.7-alpine
+        ports: ['6379:6379']
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      TRACKING_TEST_REDIS_ADDR: 127.0.0.1:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.5'
+          cache-dependency-path: tracking/go.sum
+      - run: go vet ./... && go test -race ./...
+        working-directory: tracking
+  repository:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/init-env.py
+      - run: docker compose config --quiet
+      - run: python scripts/check-boundaries.py && python scripts/check-release-source.py
+      - run: git diff --check

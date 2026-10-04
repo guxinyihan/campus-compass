@@ -1,65 +1,111 @@
+name: campuscompass
 services:
-  graphhopper:
-    image: israelhikingmap/graphhopper:10.0
-    container_name: graphhopper
-    ports:
-      - "8989:8989"
-    volumes:
-      - ./routing-backend/graphhopper/thapar_map.osm:/data/thapar_map.osm
-      - ./routing-backend/graphhopper/config.yml:/data/config.yml
-    command: >
-      --input /data/thapar_map.osm
-      --config /data/config.yml
-      --host 0.0.0.0
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:4000}
+        VITE_ROUTING_API_URL: ${VITE_ROUTING_API_URL:-http://localhost:5001}
+        VITE_TRACKING_API_URL: ${VITE_TRACKING_API_URL:-http://localhost:8081}
+        VITE_TRACKING_WS_URL: ${VITE_TRACKING_WS_URL:-ws://localhost:8081/ws/vehicles}
+        VITE_TILE_URL: ${VITE_TILE_URL:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}
+    ports: ["127.0.0.1:5173:5173"]
+    depends_on:
+      api: {condition: service_healthy}
+      routing-api: {condition: service_healthy}
+      tracking: {condition: service_healthy}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8989/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-    restart: on-failure
-
-  routing-backend:
-      build:
-        context: ./routing-backend/api
-        dockerfile: api.Dockerfile
-      container_name: routing-backend
-      depends_on:
-        graphhopper:
-          condition: service_healthy
-      environment:
-        GRAPHHOPPER_BASE_URL: http://graphhopper:8989/route
-      ports:
-        - "5000:5000"
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:5173/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  api:
+    build: {context: ., dockerfile: backend/Dockerfile}
+    environment:
+      PORT: "4000"
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongo:27017/campuscompass
+      JWT_SECRET: ${JWT_SECRET:?Generate .env with scripts/init-env.py}
+      TRACKING_JWT_SECRET: ${TRACKING_JWT_SECRET:?Generate .env with scripts/init-env.py}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.test}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Generate .env with scripts/init-env.py}
+    ports: ["127.0.0.1:4000:4000"]
+    depends_on:
+      mongo: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  mongo:
+    image: mongo:8.0.18
+    volumes: ["mongo-data:/data/db"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+  routing-api:
+    build: {context: ., dockerfile: routing-backend/Dockerfile}
+    environment:
+      GRAPHHOPPER_BASE_URL: http://graphhopper:8989
+      CAMPUS_DATA_DIR: /data
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    ports: ["127.0.0.1:5001:5001"]
+    volumes: ["./data:/data:ro"]
+    depends_on:
+      graphhopper: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/health',timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+  graphhopper:
+    build: {context: ., dockerfile: routing-backend/graphhopper/Dockerfile}
+    volumes:
+      - ./data/campus.osm:/data/campus.osm:ro
+      - graph-cache:/graph-cache
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8989/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+  tracking:
+    build: {context: ./tracking, dockerfile: Dockerfile}
+    environment:
+      TRACKING_PORT: "8081"
+      REDIS_ADDR: redis:6379
+      TRACKING_JWT_SECRET: ${TRACKING_JWT_SECRET:?Generate .env with scripts/init-env.py}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    ports: ["127.0.0.1:8081:8081"]
+    depends_on:
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8081/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
   redis:
-    image: redis/redis-stack:latest
-    container_name: redis
-    ports:
-      - "6379:6379" # Redis port
-      - "8001:8001" # Redis Stack GUI port
+    image: redis:7.4.7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
-  
-  quinjet:
-    build:
-      context: ./quinjet
-      dockerfile: quinjet.Dockerfile
-    container_name: quinjet
-    depends_on:
-      redis:
-        condition: service_healthy
-    environment:
-        REDIS_HOST: redis
-        REDIS_PORT: 6379
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 3s
+volumes:
+  mongo-data:
+  graph-cache:
+networks:
+  default:
+    name: campuscompass
