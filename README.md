@@ -2,7 +2,7 @@
 
 Campus walking navigation with local place search, GraphHopper routes, landmark directions and an authenticated **simulated shuttle** demonstration.
 
-**Validation status:** actual GraphHopper, MongoDB, Redis and WebSocket native services have been exercised locally. Compose configuration validates, but this host has no Docker engine: image builds, container startup and container GraphHopper acceptance remain unverified. Publication and hosted CI are pending those release gates. See [validation evidence](docs/VALIDATION.md).
+**Validation status:** all five application images built and all seven Compose services passed health checks on Docker Engine 29.8.2. Real container GraphHopper routing, MongoDB/Redis/WebSocket acceptance, four Chrome workflows, engine outage/recovery, and Linux Go race tests with Redis 7.4.7 passed. Publication and hosted CI are the remaining release steps. See [validation evidence](docs/VALIDATION.md).
 
 ## Overview
 
@@ -36,7 +36,7 @@ Inherited concepts and material include the React/Leaflet map, campus GeoJSON an
 
 ## Screenshots
 
-Actual browser captures use synthetic identities. Public raster tiles were unavailable during capture, so vectors and routes appear over a plain basemap. These are not mockups.
+Actual Chrome captures were refreshed against the complete container stack using synthetic identities. OpenStreetMap tiles, canonical campus vectors and real GraphHopper routes are visible. These are not mockups.
 
 ![Desktop walking route and landmark directions](docs/screenshots/desktop-route.png)
 
@@ -135,7 +135,7 @@ Notices are informational; they do not change route weights or send emergency al
 
 The root file defines seven used services with readiness dependencies, distinct ports, read-only campus data and named Mongo/graph volumes. nginx serves the built frontend. Database/engine ports remain inside the network. The official GraphHopper jar is SHA-256 checked and its Apache license retained in the image definition.
 
-Only configuration parsing has been verified on this host using Compose v2.39.4. No engine is available for image builds/startup. Native acceptance does not prove container execution.
+The complete stack has been built and started using Docker Engine 29.8.2 / Compose 5.6.0 in a dedicated WSL Ubuntu environment. All seven services became healthy, and the browser and actual-service checks ran against these containers. The Windows host needed a private proxy configuration and build-only host-network overlay; the runtime used the unmodified Compose file. See [Windows environment details](docs/WINDOWS_CONTAINER_SETUP.md).
 
 ## Data Sources and Licensing
 
@@ -166,7 +166,7 @@ docker compose ps
 docker compose exec api node src/seed.js
 ```
 
-Open http://localhost:5173. The initializer creates random distinct secrets and synthetic passwords in ignored .env without printing them, and refuses to overwrite an existing file. Sign in with ADMIN_EMAIL and private ADMIN_PASSWORD. This sequence remains subject to the container gate above.
+Open http://localhost:5173. The initializer creates random distinct secrets and synthetic passwords in ignored .env without printing them, and refuses to overwrite an existing file. Sign in with ADMIN_EMAIL and private ADMIN_PASSWORD. Keep a WSL session running when using the dedicated Windows engine, as described in the environment guide.
 
 Optional synthetic driver/vehicle and simulation:
 
@@ -250,7 +250,7 @@ Physical accessibility is separate. Inherited data lacks adequate wheelchair, ke
 
 ## Known Limitations
 
-- Container builds/startup/GraphHopper acceptance and hosted CI are unverified.
+- Hosted CI is pending the new repository publication; local container acceptance has passed.
 - Campus geometry is inherited, without a current survey or established entry permissions.
 - Public tiles need internet; campus vectors render when tiles fail.
 - Accessible routes and measured ETA accuracy are unestablished.

@@ -1,11 +1,10 @@
-# Validation and unfinished release ledger
+# Validation and release ledger
 
-Last updated: **2026-10-04, Asia/Shanghai**. This document records implementation
-evidence and outstanding acceptance gates. It is not a final report or a claim
-that CampusCompass is ready for publication. No public repository publication,
-hosted CI success, complete container startup, or container GraphHopper acceptance
-is asserted here. `FINAL_REPORT.md` remains pending until mandatory release gates
-are satisfied.
+Last updated: **2026-10-04, Asia/Shanghai**. The native checks and the complete
+seven-service container stack have passed. Container GraphHopper, actual
+MongoDB/Redis/WebSocket acceptance, four Chrome workflows, engine outage/recovery
+and Linux Go race tests with Redis 7.4.7 passed. Publication and actual hosted CI
+remain to be completed before creating `FINAL_REPORT.md`.
 
 The retained source foundation is MapMitra
 `1d5420787b2f5a7a42b2a9ce17792ed7f97149fc`. Baseline failures and implementation
@@ -19,31 +18,31 @@ source; this ledger describes the current implementation.
 | Tool/dependency | Locally observed version | Scope |
 | --- | --- | --- |
 | Node.js / npm | 24.18.0 / 11.16.0 | Native frontend, identity and acceptance tooling |
-| Python | 3.14.7 | Local isolated routing venv; Docker/CI target Python 3.12 |
+| Python | Native 3.14.7; container 3.12.15 | Actual routing API runs in the Python 3.12 image |
 | Go | 1.26.5 | Native Go tests, vet and race checks |
-| Java / GraphHopper | Java 21 / GraphHopper 10.2 | Actual native engine with repository OSM input |
+| Java / GraphHopper | Temurin 21.0.12.1+1 / GraphHopper 10.2 | Actual native and container engines with canonical OSM input |
 | MongoDB | 8.0.18 | Actual disposable `mongod`; not a mocked database |
-| Redis | Windows 3.2.100 | Actual disposable native test server, persistence disabled |
-| Compose client | 2.39.4 | Configuration validation only; no usable Docker engine |
-| Production Redis target | 7.4.7-alpine | Configured in Compose/CI; execution still unverified |
+| Redis | Native Windows 3.2.100; container 7.4.7 | Actual native and Linux Redis integration; persistence disabled |
+| Docker Engine / Compose | 29.8.2 / 5.6.0 | Actual Linux/amd64 engine; five image builds and seven healthy services |
+| WSL / Ubuntu | WSL 3.0.1, kernel 6.18.40.1; Ubuntu 24.04.5 | Dedicated `CampusCompassEngine` environment |
 
 The local environment initially had no usable Docker daemon or configured WSL runtime.
 A standalone Compose client can resolve YAML and environment variables without
 building images or starting containers. Its successful configuration check does
 not establish container compatibility, readiness or networking.
 
-After the user authorized direct environment setup, the existing Docker Desktop
-4.83 installation was found and started, VirtualMachinePlatform was enabled,
-and WSL 3.0.1 installed successfully. Windows explicitly requires restart before
-the feature takes effect. Docker client 29.6.2 and bundled Compose 5.3.1 are
-available; no usable Docker server/container acceptance is claimed yet. See
-[Windows setup checkpoint](WINDOWS_CONTAINER_SETUP.md) for performed actions and
-resume commands. The application/test evidence below remains unchanged.
+After authorized setup and restart, virtualization became available. Docker
+Desktop 4.83 failed on malformed Windows AF_UNIX runtime sockets; a verified
+in-place upgrade to 4.93.0 did not repair the already inaccessible Secrets Engine
+socket. Desktop was stopped and its logon startup entry disabled. A dedicated
+WSL Ubuntu distribution instead runs the official Docker Engine successfully.
+See [Windows environment details](WINDOWS_CONTAINER_SETUP.md).
 
 The old Windows Redis binary exists only as local test tooling outside the active
-project; it is not a production dependency. Native Redis evidence is useful but
-does not replace testing the configured Redis 7.4.7 container. Local Python 3.14
-results do not represent executing the Python 3.12 image. A separate pip dry-run
+project; it is not a production dependency. Redis 7.4.7 now passed actual Linux
+integration and race tests and serves the tested Compose tracking service.
+Local Python 3.14 unit results remain distinct from running the Python 3.12.15
+container and from the later hosted Python test job. A separate pip dry-run
 successfully resolved all pinned runtime/development dependencies for CPython 3.12
 on Linux, including compatible manylinux 2.28/2.17/2014 wheels; that is dependency
 availability evidence, not execution in Linux or a container.
@@ -66,10 +65,10 @@ production identity dataset.
 | Python 3.12 Linux wheel resolution | **PASS: dry-run only** | All pins resolve as binary/universal distributions; no Linux test execution claimed |
 | Canonical campus validation | **PASS** | 395 features, 106 named POIs, 4,100 OSM nodes, 455 ways, 10 relations; six duplicate normalized name groups reported and retained separately |
 | Go domain/integration tests | **PASS: 11 top-level tests, 13 authorization subcases** | Includes actual Redis Lua/latest/TTL and WebSocket integration, rejection without writes, concurrency, stream bootstrap order, bounded/slow readers, origins and dependency failures |
-| Go race and vet | **PASS** | Actual Redis included in race run; local Windows linker workaround described below |
+| Go race and vet | **PASS: native and Linux** | Linux Go 1.26.5, actual Redis 7.4.7, no skips; native Windows linker workaround described below |
 | Configuration initializer | **PASS** | Fresh isolated template generated four distinct private values; an existing file remained unchanged; native engine config uses canonical paths and loopback binding |
 | Native GraphHopper acceptance | **PASS: actual engine** | Java 21/GraphHopper 10.2, canonical OSM import and routing API; route 411.799 m, estimated walking duration 296.496 s, 6 instructions, non-empty geometry |
-| Compose configuration | **PASS** | Standalone Compose 2.39.4 `config --quiet`; full image build/start remains unverified |
+| Compose configuration/build/readiness | **PASS** | Engine 29.8.2 / Compose 5.6.0, five images built, all seven services healthy; local proxy build overlay documented separately |
 | Active source boundary check | **PASS** | No divergent original map copies, public Nominatim autocomplete, inherited service hosts or active retired ride experiment |
 | Git whitespace check | **PASS at this snapshot** | `git diff --check`; rerun after final edits |
 | Tracked-source secret/license scan | **PASS** | Rewritten README removed the inherited credential-bearing Mongo URI example. Scanner checks current tracked source and original license; it is not an exhaustive credential audit |
@@ -185,11 +184,12 @@ docker compose config --quiet
 The environment initializer generates private ignored `.env` values; do not
 paste them into reports or commit them. The successful local Compose check used
 the equivalent standalone client at `../../work/tools/docker-compose.exe`.
-The actual build attempt failed because the Docker API named pipe
+The initial build attempt failed because the Docker API named pipe
 `dockerDesktopLinuxEngine` does not exist. It was retried outside the sandbox
 after a plugin access restriction, confirming the missing engine rather than
 infering it from configuration parsing. No image build or container startup
-succeeded; no global Docker/WSL installation was performed.
+succeeded at that earlier checkpoint. The subsequent authorized environment
+setup and successful Linux container acceptance are recorded below.
 
 ## Actual native acceptance evidence
 
@@ -232,10 +232,11 @@ also expanded, bringing frontend tests to 28. The final four-workflow suite
 passed after these source changes, including admin CRUD and the driver stale
 check. Fake student accounts remain because v1 has no account deletion API.
 
-Actual desktop, simulated live shuttle and admin captures were visually
-inspected. OpenStreetMap attribution is visible. Public OSM raster tiles were
-unavailable during capture; campus vectors and the route rendered on a plain
-basemap. These files contain only fake identities and no tokens/configuration.
+Initial native captures were visually inspected with public raster tiles
+unavailable. Delivered captures were subsequently refreshed against the complete
+container stack, with OpenStreetMap tiles, canonical vectors, real routes and
+visible attribution. Desktop and mobile captures were visually inspected again.
+These files contain only fake identities and no tokens/configuration.
 UI keyboard coverage remains in component tests rather than a comprehensive
 browser accessibility certification.
 
@@ -278,9 +279,46 @@ advancing a fake timer. Native Redis tests also verify the configured TTL and
 isolation of rejected writes. Frontend unit tests cover watcher cleanup and
 deliberate routing; visitor GPS is not part of the publishing path.
 
-### Container acceptance — UNVERIFIED / mandatory release gate
+### Container acceptance — PASS
 
-On a Docker-capable host, from the repository root:
+The exact application source snapshot was `16db02c9689651c869fc67fa9f311bd78df56a80`.
+Five application images built on Docker Engine **29.8.2 / Compose 5.6.0** in
+dedicated WSL Ubuntu **24.04.5**. A private proxy and ignored build-only
+host-network overlay were necessary for this host's Windows loopback proxy.
+Runtime used the **unmodified base Compose file**, with MongoDB, Redis and
+GraphHopper internal and four application ports bound to 127.0.0.1.
+
+All **seven** services became healthy. The canonical OSM import completed,
+and the actual routing API returned **411.799 m / 296.496 s / 6 instructions**
+with non-empty geometry. Container OSM SHA-256 was
+`b3857f0c38c2fb481626e86fe086df1edd2b3f1f41469bc91dc060817f430230`;
+the GraphHopper jar hash matched the audited 10.2 artifact above.
+
+The actual full-stack script passed Node/Mongo authentication and administration,
+driver-only grants, Go/Redis latest state and WebSocket broadcast. Cross-vehicle
+403 and wrong-token-type 401 left the previous Redis latest value unchanged.
+The strengthened Chrome suite passed **4 tests in 51.8 seconds**, with no skips.
+The first attempt encountered WSL session shutdown before browser connection;
+a hidden dedicated keep-alive session resolved this environment interruption.
+No application tests or assertions were weakened.
+
+Stopping the actual GraphHopper container passed the outage scenario: readiness
+503, safe route 503/504, useful browser message and enabled controls. Restoring
+the same container/cache returned all services to healthy.
+
+The finite simulator passed **three authorized HTTP writes**, matching Redis
+latest state and public WebSocket events, moving browser marker, real **30-second
+stale** and **120-second offline/expiry** behavior. The expired latest endpoint
+returned 404 and expired markers disappeared. Updated outage/offline screenshots
+are actual container-backed captures.
+
+An independent Linux Go **1.26.5** test container on the Compose network passed
+`go vet ./...` and `go test -race -count=1 -v ./...` against actual Redis **7.4.7**:
+**11 top-level tests / 13 authorization rejection subcases**, no skips or race
+reports. Package time was **1.750 s**. Its uniquely prefixed test keys were
+cleaned, the `--rm` test container exited, and application keys were untouched.
+
+To reproduce on a Docker-capable host, from the repository root:
 
 ```sh
 python scripts/init-env.py
@@ -293,11 +331,10 @@ node --env-file=.env scripts/seed-demo.mjs
 node --env-file=.env scripts/acceptance.mjs
 ```
 
-Verify all seven services healthy, canonical OSM import and a positive actual
-**container** GraphHopper route through the routing API. Repeat browser/simulator
-acceptance against that stack and actual Redis 7.4.7. Do not relabel the successful
-native GraphHopper run as this container test. Preserve generated graph/Mongo
-volumes intentionally; ordinary shutdown need not delete stored demo metadata.
+Verify all seven services healthy and run the browser/simulator and outage
+commands above. Preserve generated graph/Mongo volumes intentionally; ordinary
+shutdown need not delete stored demo metadata. Exact Windows engine/proxy/session
+commands are in [WINDOWS_CONTAINER_SETUP.md](WINDOWS_CONTAINER_SETUP.md).
 
 ## Release checklist from requested phase 96
 
@@ -314,25 +351,23 @@ volumes intentionally; ordinary shutdown need not delete stored demo metadata.
 | Node auth/admin tests pass | **PASS: 14 tests, actual MongoDB** |
 | Role escalation tests pass | **PASS: Node tests and actual service student-admin rejection** |
 | Routing tests pass | **PASS: 75 tests and Ruff** |
-| Real local GraphHopper route verified | **PASS: native**; **required container run unverified** |
+| Real local GraphHopper route verified | **PASS: native and actual container**, positive geometry/distance/duration/instructions |
 | Geolocation cleanup tests pass | **PASS: frontend tests and actual driver stop/watch status** |
 | Go tracking tests pass | **PASS: 11 top-level tests / 13 authorization subcases** |
-| Redis integration passes | **PASS: actual Windows 3.2.100**; target **7.4.7 pending** |
+| Redis integration passes | **PASS: native and Linux Redis 7.4.7**, actual Lua/WS/TTL/race tests |
 | Driver authorization tests pass | **PASS: tests and actual authorized driver service/browser flow** |
 | Cross-vehicle spoof test passes | **PASS: Go tests and actual full-stack rejected cross-vehicle write** |
 | WebSocket live-update test passes | **PASS: actual Redis/WS, driver and simulator browser marker movement** |
-| Docker Compose config passes | **PASS: Compose 2.39.4**, parsing only |
-| Complete local stack starts when tooling available | **PASS: complete native services**; **container build/start/health unverified** |
+| Docker Compose config passes | **PASS: Compose 5.6.0**, configuration/build/start exercised |
+| Complete local stack starts when tooling available | **PASS: all seven Compose services healthy**, real browser and full-stack acceptance |
 | Obsolete hard-coded cloud URLs removed | **PASS: active source and final frontend production bundle scan** |
 | Fake shuttle positions removed | **PASS: inherited operational mocks removed; labeled authorized simulator exercised** |
 | README claims only real features | **PASS: rewritten around implemented native evidence and explicit limitations** |
 | Real screenshots exist | **PASS: actual desktop/tablet/mobile/admin/live/outage/offline captures** |
 | Secret scan passes | **PASS: current tracked-source scan; staged/final checks are rerun at commit** |
 
-Remaining conditions: execute production Redis 7.4.7 and complete
-container acceptance on a Docker-capable host. Publication is deferred until
-those mandatory environment gates pass. Hosted CI must be inspected after
-publication; workflow YAML is not a successful hosted run.
+All requested local release gates have passed. Publication and inspection of
+the actual hosted CI remain. Workflow YAML is not a successful hosted run.
 `.github/workflows/ci.yml` supplies checks but is not evidence they have run.
 Do not publish or create `FINAL_REPORT.md` until required checks pass and this
 ledger is updated with their observed outcomes.
@@ -353,8 +388,7 @@ files and generated graphs remain untracked. Retired misleading upstream
 documentation is inspectable through Git history and replaced in the active
 tree by scoped source-backed documentation.
 
-Once a Docker-capable environment is available, run container acceptance,
-address any real failures, recheck release hygiene, create the requested
-new unused public repository, preserve `upstream` and add `origin`, push, inspect
-actual hosted CI, and only then create `FINAL_REPORT.md`. Native passes do not
-establish these unfinished environment/release gates.
+Next: recheck release hygiene, create the requested new unused public repository,
+preserve `upstream` and add `origin`, push, inspect actual hosted CI, and only then
+create `FINAL_REPORT.md`. Container evidence now satisfies the local environment
+gates; hosted execution remains a separate check.
