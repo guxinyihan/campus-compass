@@ -21,7 +21,8 @@ export function useRoute() {
       setState({ route, loading: false, error: '' });
       return route;
     } catch (error) {
-      if (!controller.signal.aborted) setState({ route: null, loading: false, error: error.message });
+      const temporaryFailure = ['ROUTING_TIMEOUT', 'ROUTING_ENGINE_UNAVAILABLE', 'NETWORK_ERROR'].includes(error.code);
+      if (!controller.signal.aborted) setState({ route: null, loading: false, error: temporaryFailure ? 'Routing is temporarily unavailable. Please try again.' : error.message });
       return null;
     } finally {
       if (pending.current === controller) pending.current = null;
