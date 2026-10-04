@@ -1,0 +1,5 @@
+{
+  "name": "campuscompass-acceptance", "private": true, "version": "1.0.0", "type": "module", "license": "MIT",
+  "scripts": {"test": "playwright test"},
+  "devDependencies": {"@playwright/test": "^1.56.1", "ws": "^8.18.3"}
+}
