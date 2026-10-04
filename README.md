@@ -2,7 +2,7 @@
 
 Campus walking navigation with local place search, GraphHopper routes, landmark directions and an authenticated **simulated shuttle** demonstration.
 
-**Validation status:** all five application images built and all seven Compose services passed health checks on Docker Engine 29.8.2. Real container GraphHopper routing, MongoDB/Redis/WebSocket acceptance, four Chrome workflows, engine outage/recovery, and Linux Go race tests with Redis 7.4.7 passed. Publication and hosted CI are the remaining release steps. See [validation evidence](docs/VALIDATION.md).
+**Validation status:** all five application images built and all seven Compose services passed health checks on Docker Engine 29.8.2. Real container GraphHopper routing, MongoDB/Redis/WebSocket acceptance, four Chrome workflows, engine outage/recovery, and Linux Go race tests with Redis 7.4.7 passed. The repository is public, and all five [hosted CI jobs passed](https://github.com/guxinyihan/campus-compass/actions/runs/37210523326). See [validation evidence](docs/VALIDATION.md) and the [final report](FINAL_REPORT.md).
 
 ## Overview
 
@@ -240,7 +240,7 @@ Acceptance mutates synthetic records; use a disposable local database. See [vali
 
 ## CI
 
-[GitHub Actions](.github/workflows/ci.yml) defines frontend lint/tests/build, Node tests with MongoDB, Python lint/tests, Go race tests with real Redis and repository config/data/source checks. Hosted routing tests mock the engine. No hosted run is claimed while publication remains gated.
+[GitHub Actions](.github/workflows/ci.yml) checks frontend lint/tests/build, Node tests with MongoDB, Python lint/tests, Go race tests with real Redis and repository config/data/source checks. All five jobs passed in [actual run 37210523326](https://github.com/guxinyihan/campus-compass/actions/runs/37210523326) on release commit `f91b690`. Hosted routing unit tests mock the engine; real GraphHopper and full-browser acceptance were verified separately against local containers.
 
 ## Accessibility
 
@@ -250,7 +250,6 @@ Physical accessibility is separate. Inherited data lacks adequate wheelchair, ke
 
 ## Known Limitations
 
-- Hosted CI is pending the new repository publication; local container acceptance has passed.
 - Campus geometry is inherited, without a current survey or established entry permissions.
 - Public tiles need internet; campus vectors render when tiles fail.
 - Accessible routes and measured ETA accuracy are unestablished.

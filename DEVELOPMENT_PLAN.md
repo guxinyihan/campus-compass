@@ -4,6 +4,12 @@ Foundation: full-history upstream main `1d5420787b2f5a7a42b2a9ce17792ed7f97149fc
 Source inspections and baselines precede implementation. Audits are snapshots
 of the foundation, not descriptions of the finished application.
 
+Completion recorded 2026-10-04: implementation, native checks, the complete
+seven-service container stack, real GraphHopper/browser/Redis/WebSocket
+acceptance and all five hosted CI jobs passed before final reporting. Published
+repository: [guxinyihan/campus-compass](https://github.com/guxinyihan/campus-compass).
+See [validation evidence](docs/VALIDATION.md) for observed results and limits.
+
 ## Boundaries and data ownership
 
 | Active component | Responsibility | Host port |
@@ -113,8 +119,10 @@ supported, actual Redis integration, all token rejection cases, TTL and real WS.
 
 Require `docker compose config`, build/start/health acceptance when tooling is
 available, and the user-requested actual **container** GraphHopper acceptance.
-Native runtime evidence cannot substitute for container acceptance. This host
-currently has no Docker daemon or configured WSL; keep that release gate explicit.
+Native runtime evidence cannot substitute for container acceptance. At the
+initial audit this host had no usable Docker daemon or configured WSL. Authorized
+setup subsequently provided a dedicated WSL Docker Engine, and the actual
+container gate passed; the initial environment constraint is now resolved.
 GitHub credentials are verified through authorized credential access; initial
 sandbox auth failure was an access restriction, not an invalid account.
 

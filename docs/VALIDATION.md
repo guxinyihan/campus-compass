@@ -3,8 +3,9 @@
 Last updated: **2026-10-04, Asia/Shanghai**. The native checks and the complete
 seven-service container stack have passed. Container GraphHopper, actual
 MongoDB/Redis/WebSocket acceptance, four Chrome workflows, engine outage/recovery
-and Linux Go race tests with Redis 7.4.7 passed. Publication and actual hosted CI
-remain to be completed before creating `FINAL_REPORT.md`.
+and Linux Go race tests with Redis 7.4.7 passed. The new public repository and
+actual hosted CI are also verified below. `FINAL_REPORT.md` was created after
+those gates passed.
 
 The retained source foundation is MapMitra
 `1d5420787b2f5a7a42b2a9ce17792ed7f97149fc`. Baseline failures and implementation
@@ -25,6 +26,8 @@ source; this ledger describes the current implementation.
 | Redis | Native Windows 3.2.100; container 7.4.7 | Actual native and Linux Redis integration; persistence disabled |
 | Docker Engine / Compose | 29.8.2 / 5.6.0 | Actual Linux/amd64 engine; five image builds and seven healthy services |
 | WSL / Ubuntu | WSL 3.0.1, kernel 6.18.40.1; Ubuntu 24.04.5 | Dedicated `CampusCompassEngine` environment |
+| Hosted Node / npm | 24.21.0 / 11.19.0 | Actual frontend and Node GitHub Actions logs |
+| Hosted Python / Go | 3.12.14 / 1.26.5 | Actual routing/repository and Linux tracking CI logs |
 
 The local environment initially had no usable Docker daemon or configured WSL runtime.
 A standalone Compose client can resolve YAML and environment variables without
@@ -62,7 +65,7 @@ production identity dataset.
 | Python routing tests | **PASS: 75 tests** | Pytest; request/order/bounds, canonical data, ranking/aliases, landmark distance/fallback, engine errors, concurrent async calls and bounded stalled requests |
 | Python Ruff check/format | **PASS** | Current `api` and `tests` source |
 | Python dependency consistency | **PASS** | `pip check` reports no broken requirements; all runtime/transitive and development versions pinned |
-| Python 3.12 Linux wheel resolution | **PASS: dry-run only** | All pins resolve as binary/universal distributions; no Linux test execution claimed |
+| Python 3.12 Linux tests | **PASS: hosted Python 3.12.14** | All 75 tests and Ruff passed; prior wheel dry-run remains separately scoped evidence |
 | Canonical campus validation | **PASS** | 395 features, 106 named POIs, 4,100 OSM nodes, 455 ways, 10 relations; six duplicate normalized name groups reported and retained separately |
 | Go domain/integration tests | **PASS: 11 top-level tests, 13 authorization subcases** | Includes actual Redis Lua/latest/TTL and WebSocket integration, rejection without writes, concurrency, stream bootstrap order, bounded/slow readers, origins and dependency failures |
 | Go race and vet | **PASS: native and Linux** | Linux Go 1.26.5, actual Redis 7.4.7, no skips; native Windows linker workaround described below |
@@ -75,7 +78,8 @@ production identity dataset.
 
 The Python test run emits one Starlette TestClient deprecation warning for using
 HTTPX rather than HTTPX2. All 75 tests pass; the warning is test tooling behavior,
-not proof of a runtime failure. No hosted test run has been observed yet.
+not proof of a runtime failure. The hosted Python run also passed all 75 tests
+with one warning, in 1.98 seconds.
 
 The native GraphHopper jar SHA-256 is
 `ead763749c395ea0cc45b3fd10092d6de84d62fb5cbaf7d416ba6cc142c5716c`.
@@ -366,17 +370,36 @@ commands are in [WINDOWS_CONTAINER_SETUP.md](WINDOWS_CONTAINER_SETUP.md).
 | Real screenshots exist | **PASS: actual desktop/tablet/mobile/admin/live/outage/offline captures** |
 | Secret scan passes | **PASS: current tracked-source scan; staged/final checks are rerun at commit** |
 
-All requested local release gates have passed. Publication and inspection of
-the actual hosted CI remain. Workflow YAML is not a successful hosted run.
-`.github/workflows/ci.yml` supplies checks but is not evidence they have run.
-Do not publish or create `FINAL_REPORT.md` until required checks pass and this
-ledger is updated with their observed outcomes.
+All requested local release gates passed before publication. Actual hosted
+execution is verified separately below; workflow YAML alone was not used as
+evidence of success.
+
+## Actual hosted CI — PASS
+
+Public release commit `f91b690cbd22b166622e0c75e5741d61a1771c14` triggered
+[run 37210523326](https://github.com/guxinyihan/campus-compass/actions/runs/37210523326).
+The actual run completed **success**, with all five jobs successful:
+
+| Job | Observed evidence |
+| --- | --- |
+| frontend | Node 24.21.0 / npm 11.19.0; 28 tests in 8 files, lint and production build passed |
+| node-api | Node 24.21.0; actual MongoDB 8.0.18 service; 14 tests passed and lint passed |
+| routing | Python 3.12.14; Ruff check/format, 75 tests (1 warning), canonical data validation passed |
+| tracking | Go 1.26.5; Redis 7.4.7 service; vet and race suite passed, package time 1.710 s |
+| repository | Full history checkout; fresh ignored env initialization, Compose config, source/license checks and whitespace passed |
+
+Hosted routing tests use HTTPX fixtures; the real engine and four browser
+workflows were tested separately against the local Compose stack. The final
+report/documentation commit triggers another run whose result is checked after
+pushing, without inventing its ID inside its own source.
 
 ## Delivery and Git state
 
 Implementation and documentation live in this isolated CampusCompass
-repository. Upstream remains named `upstream`; no new `origin` or public
-repository has been created. The observed foundation HEAD and the earlier
+repository. The original remote remains `upstream`; the new `origin` is
+[guxinyihan/campus-compass](https://github.com/guxinyihan/campus-compass), verified
+**public**, with default branch `main`. It was created only after name availability
+and all local release gates were checked. The observed foundation HEAD and the earlier
 `5e80c1821088963b9f28d938f6000a2f3d7f58da` are ancestors of this implementation.
 Original code license text/copyright and canonical data bytes are preserved.
 Changes were committed incrementally after audits, failing regressions and
@@ -388,7 +411,8 @@ files and generated graphs remain untracked. Retired misleading upstream
 documentation is inspectable through Git history and replaced in the active
 tree by scoped source-backed documentation.
 
-Next: recheck release hygiene, create the requested new unused public repository,
-preserve `upstream` and add `origin`, push, inspect actual hosted CI, and only then
-create `FINAL_REPORT.md`. Container evidence now satisfies the local environment
-gates; hosted execution remains a separate check.
+The release snapshot before final reporting contains **64 commits total**, with
+**20 incremental commits** after the retained foundation. Source history, original
+licensing and the upstream remote remain intact. Final reporting adds a normal
+documentation commit and is checked again in hosted CI. No existing public
+repository was overwritten, and no force push was used.

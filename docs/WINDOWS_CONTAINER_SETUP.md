@@ -5,7 +5,7 @@ continued publication work. The dedicated Linux Docker Engine is running and all
 five application images have built successfully. All seven services became
 healthy; actual GraphHopper, Mongo/Redis/WebSocket, four Chrome workflows,
 engine outage/recovery, finite simulator/TTL and Linux Go race acceptance passed.
-Publication and hosted CI remain the next steps at this checkpoint.
+The new public repository and all five hosted CI jobs are also verified below.
 
 ## Windows and Docker Desktop work performed
 
@@ -112,7 +112,7 @@ Only this project's owned native processes should be stopped if they occupy
 wsl -d CampusCompassEngine -u root --cd /opt/campuscompass --exec docker compose -f docker-compose.yml down
 ```
 
-## Remaining release work
+## Session lifetime and completed release
 
 Systemd services alone did not keep the WSL instance alive between host commands.
 The initial browser attempt therefore encountered connection refusal after the
@@ -138,12 +138,13 @@ credential-form documentation examples used placeholders. This is a scoped
 scan, not proof that every possible secret pattern is absent. Host setup helpers,
 diagnostics, the build overlay and application credentials remain untracked.
 
-Actual container acceptance has passed. Update the validation ledger, recheck
-secret/license/Git hygiene and repository-name availability, create the new
-unused public repository, retain `upstream`, add `origin`, push and inspect the
-actual Actions results. Address real failures and only then create
-`FINAL_REPORT.md`. Public repository creation and hosted CI remain unverified
-until their actual results are recorded.
+Actual container acceptance passed before creating the new public
+[guxinyihan/campus-compass repository](https://github.com/guxinyihan/campus-compass).
+`upstream` was retained, `origin` added, and the complete history pushed.
+All five jobs in [actual CI run 37210523326](https://github.com/guxinyihan/campus-compass/actions/runs/37210523326)
+passed on release commit `f91b690`. The final report was created only after
+implementation, container acceptance and hosted CI passed. The reporting commit
+is subsequently pushed and its own CI outcome checked separately.
 
 References: [Microsoft WSL installation](https://learn.microsoft.com/en-us/windows/wsl/install),
 [Microsoft WSL networking](https://learn.microsoft.com/en-us/windows/wsl/networking),
