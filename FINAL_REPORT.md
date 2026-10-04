@@ -569,8 +569,23 @@ controls; recovery and subsequent service acceptance passed with all seven
 services healthy. Seven fresh screenshots were retained outside the repository;
 the original tracked captures were restored byte-for-byte.
 
-All local gates passed before the requested push. Actual hosted CI and the final
-maintenance status are recorded after that run completes. There are no remaining
-npm advisories or no-fix exceptions. ESLint 9 emits an upstream
-support-deprecation warning; retaining its compatible major avoids unrelated
-plugin/lint migration.
+All local gates passed before the requested push. Maintenance commit
+`6285052b8c415bfda44cefc5bfb4a3bcf4122e6b` was pushed to the existing public
+repository's `main` branch by a normal fast-forward update, preserving upstream
+history and visibility. Actual [hosted CI run 37218899561](https://github.com/guxinyihan/campus-compass/actions/runs/37218899561)
+completed successfully:
+
+| Hosted job | Observed maintenance result |
+| --- | --- |
+| frontend | Clean npm install, full install-time audit and explicit production high/critical audit gate: zero findings; lint, 28 tests in eight files and Vite production build passed |
+| node-api | Actual MongoDB service initialized; clean npm install and both audits: zero findings; lint and all 14 tests passed |
+| routing | Ruff lint/format, all 75 tests and campus data validation passed; one known test-client deprecation warning |
+| tracking | Redis service initialized; Go vet and race command passed using a cached successful test result; fresh actual-Redis race coverage was verified separately in the local Linux run |
+| repository | Full upstream history checkout, fresh environment initialization, Compose configuration, boundaries, tracked current-source/license scan and whitespace checks passed |
+
+Final maintenance status: **DEPENDENCY_CLEANUP_COMPLETE**. There are no
+remaining npm advisories or no-fix exceptions as of **2026-10-05**. ESLint 9
+emits an upstream support-deprecation warning; retaining its compatible major
+avoids unrelated plugin/lint migration. The final reporting commit receives its
+own subsequent push and hosted-CI check, whose outcome is reported separately
+without inventing a self-referential run ID in its source.
