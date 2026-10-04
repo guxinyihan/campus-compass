@@ -18,7 +18,7 @@ The XML's declared extract envelope is latitude 30.35012–30.35864, longitude 7
 
 Comparing features by exact geometry, the frontend includes six additional features: a service road, three Inter Tower Path bridge segments, a hospital point, and the university polygon. Five shared features have different properties: Open Air Theatre/OAT naming, Shadowz/Fashion Point naming, G Block canteen spacing, Shiv Mandir amenity classification, and Fete Area amenity classification. The API copy is therefore not interchangeable with the frontend copy. All geometries in both copies passed Shapely validity checking in the audit environment.
 
-The intended migration is to retain the richer frontend GeoJSON as `data/campus.geojson`, retain the XML as `data/campus.osm`, remove runtime use of the two divergent originals, and serve POIs from the routing service. Data transformations must be explicit and deterministic; revisions must update provenance and hashes. This paragraph records the migration decision, not a claim that upstream already used one source.
+CampusCompass now retains the richer frontend GeoJSON as `data/campus.geojson` and the XML as `data/campus.osm`, byte-for-byte with the hashes above. The two divergent original GeoJSON paths and original OSM path are removed from the active tree. The routing service validates this canonical dataset and derives the single POI index in memory; the frontend obtains campus geometries and POI results through its APIs. The historical copies remain in Git. No map coordinate or property was changed during this migration. Future data transformations must be explicit and deterministic and update provenance and hashes.
 
 ## Data redistribution and attribution
 

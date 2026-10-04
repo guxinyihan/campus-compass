@@ -6732,8 +6732,7 @@
             "properties": {
                 "amenity": "theatre",
                 "building": "yes",
-                "name": "Open Air Theatre",
-                "name:en": "OAT"
+                "name": "OAT Open Air Theatre"
             },
             "geometry": {
                 "type": "Polygon",
@@ -8219,6 +8218,25 @@
         {
             "type": "Feature",
             "properties": {
+                "highway": "service"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        76.37372200000,
+                        30.35208200000
+                    ],
+                    [
+                        76.37393350000,
+                        30.35209270000
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
                 "building": "yes"
             },
             "geometry": {
@@ -9151,6 +9169,48 @@
         {
             "type": "Feature",
             "properties": {
+                "bicycle": "no",
+                "bridge": "yes",
+                "highway": "path",
+                "horse": "no",
+                "incline": "0",
+                "layer": "1",
+                "name": "Inter Tower Path",
+                "surface": "paved"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        76.36061890000,
+                        30.35283610000
+                    ],
+                    [
+                        76.36039020000,
+                        30.35279170000
+                    ],
+                    [
+                        76.36052630000,
+                        30.35257120000
+                    ],
+                    [
+                        76.36026520000,
+                        30.35255200000
+                    ],
+                    [
+                        76.36027910000,
+                        30.35243220000
+                    ],
+                    [
+                        76.36033630000,
+                        30.35246080000
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
                 "leisure": "pitch",
                 "name": "Tennis Court",
                 "sport": "tennis",
@@ -9273,7 +9333,7 @@
         {
             "type": "Feature",
             "properties": {
-                "amenity": "worship",
+                "amenity": "place_of_worship",
                 "building": "yes",
                 "name": "Shiv Mandir",
                 "religion": "hindu"
@@ -9781,6 +9841,25 @@
                             30.35664270000
                         ]
                     ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "addr:district": "Patiala",
+                "addr:full": "Adarsh Colony, Prem Nagar, Patiala",
+                "addr:postcode": "147004",
+                "addr:state": "Punjab",
+                "amenity": "hospital",
+                "name": "Dirghayu Ayurvedic Hospital and Panchakarma Centre",
+                "source": "Local Knowledge"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    76.36648360000,
+                    30.35762160000
                 ]
             }
         },
@@ -13599,6 +13678,100 @@
         {
             "type": "Feature",
             "properties": {
+                "addr:city": "Patiala",
+                "addr:housenumber": "32",
+                "addr:postcode": "147004",
+                "addr:street": "Bhadson Road",
+                "amenity": "university",
+                "name": "Thapar Institute of Engineering and Technology",
+                "old_name": "Thapar University",
+                "website": "https://www.thapar.edu/",
+                "wikidata": "Q7710683",
+                "wikipedia": "en:Thapar Institute of Engineering and Technology"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            76.36570190000,
+                            30.35110810000
+                        ],
+                        [
+                            76.36728630000,
+                            30.35125170000
+                        ],
+                        [
+                            76.36962050000,
+                            30.35152940000
+                        ],
+                        [
+                            76.37130500000,
+                            30.35173380000
+                        ],
+                        [
+                            76.37289780000,
+                            30.35191730000
+                        ],
+                        [
+                            76.37384840000,
+                            30.35203370000
+                        ],
+                        [
+                            76.37270270000,
+                            30.35436860000
+                        ],
+                        [
+                            76.37287610000,
+                            30.35566700000
+                        ],
+                        [
+                            76.37326210000,
+                            30.35855710000
+                        ],
+                        [
+                            76.35857380000,
+                            30.35695350000
+                        ],
+                        [
+                            76.35884830000,
+                            30.35469860000
+                        ],
+                        [
+                            76.35897370000,
+                            30.35370470000
+                        ],
+                        [
+                            76.35908340000,
+                            30.35300190000
+                        ],
+                        [
+                            76.35923970000,
+                            30.35165650000
+                        ],
+                        [
+                            76.35924540000,
+                            30.35160790000
+                        ],
+                        [
+                            76.35937170000,
+                            30.35049550000
+                        ],
+                        [
+                            76.35939080000,
+                            30.35038480000
+                        ],
+                        [
+                            76.36570190000,
+                            30.35110810000
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
                 "bicycle": "no",
                 "highway": "path"
             },
@@ -14162,7 +14335,7 @@
         {
             "type": "Feature",
             "properties": {
-                "amenity": "ground",
+                "amenity": "college",
                 "name": "Fete Area"
             },
             "geometry": {
@@ -14753,7 +14926,7 @@
         {
             "type": "Feature",
             "properties": {
-                "name": "Shadowz",
+                "name": "Fashion Point",
                 "shop": "beauty"
             },
             "geometry": {
@@ -16388,7 +16561,7 @@
             "properties": {
                 "amenity": "restaurant",
                 "building": "yes",
-                "name": "Canteen (G Block)"
+                "name": "Canteen(G Block)"
             },
             "geometry": {
                 "type": "Polygon",
@@ -19846,6 +20019,51 @@
         {
             "type": "Feature",
             "properties": {
+                "bicycle": "no",
+                "bridge": "yes",
+                "highway": "path",
+                "horse": "no",
+                "incline": "0",
+                "name": "Inter Tower Path",
+                "surface": "concrete"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        76.36128000000,
+                        30.35269350000
+                    ],
+                    [
+                        76.36122900000,
+                        30.35274610000
+                    ],
+                    [
+                        76.36146500000,
+                        30.35276050000
+                    ],
+                    [
+                        76.36156780000,
+                        30.35214450000
+                    ],
+                    [
+                        76.36131230000,
+                        30.35211580000
+                    ],
+                    [
+                        76.36132620000,
+                        30.35204870000
+                    ],
+                    [
+                        76.36128960000,
+                        30.35203940000
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
                 "building": "yes"
             },
             "geometry": {
@@ -21022,6 +21240,40 @@
                             76.36545050000,
                             30.35214300000
                         ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "bicycle": "no",
+                "bridge": "yes",
+                "highway": "path",
+                "horse": "no",
+                "incline": "0",
+                "layer": "1",
+                "name": "Inter Tower Path",
+                "surface": "paved"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        76.36052630000,
+                        30.35257120000
+                    ],
+                    [
+                        76.36115120000,
+                        30.35263350000
+                    ],
+                    [
+                        76.36114290000,
+                        30.35268140000
+                    ],
+                    [
+                        76.36128000000,
+                        30.35269350000
                     ]
                 ]
             }
