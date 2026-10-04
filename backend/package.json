@@ -1,31 +1,13 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
+  "name": "campuscompass-api", "version": "1.0.0", "private": true, "type": "module", "license": "MIT",
+  "engines": {"node": ">=22"},
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
+    "start": "node --env-file-if-exists=../.env src/index.js",
+    "dev": "node --env-file-if-exists=../.env --watch src/index.js",
+    "seed:admin": "node --env-file-if-exists=../.env src/seed.js",
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "lint": "eslint src tests"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "bcrypt": "^5.1.1",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.1",
-    "express-session": "^1.18.1",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.8.1",
-    "mongoose-aggregate-paginate-v2": "^1.1.2",
-    "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.7",
-    "prettier": "^3.3.3"
-  }
+  "dependencies": {"bcryptjs": "3.0.3", "cors": "2.8.5", "express": "5.2.1", "express-rate-limit": "8.7.0", "helmet": "^8.1.0", "jsonwebtoken": "9.0.2", "mongoose": "9.10.4", "zod": "4.6.5"},
+  "devDependencies": {"@eslint/js": "^9.39.0", "eslint": "^9.39.0", "globals": "^16.4.0", "mongodb-memory-server": "11.3.0", "supertest": "^7.2.2"}
 }
