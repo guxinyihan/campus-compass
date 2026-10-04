@@ -97,7 +97,7 @@ test('concurrent role demotion and vehicle assignment preserve the driver invari
   for (let i = 0; i < 8; i++) {
     const candidate = await User.create({name: 'Race Driver', email: `race-${i}@example.test`, passwordHash: 'unused-test-hash', role: 'driver'});
     const results = await Promise.all([
-      request(app).patch(`/api/admin/users/${candidate.id}/role`).set(auth(adminToken)).send({role: 'student'}),
+      request(app).patch(`/api/admin/users/${i % 2 ? candidate.id.toUpperCase() : candidate.id}/role`).set(auth(adminToken)).send({role: 'student'}),
       request(app).post('/api/admin/vehicles').set(auth(adminToken)).send({displayName: 'Race Shuttle', code: `RACE-${i}`, assignedDriver: candidate.id}),
     ]);
     const current = await User.findById(candidate.id);

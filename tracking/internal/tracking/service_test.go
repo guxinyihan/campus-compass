@@ -436,3 +436,31 @@ func TestConcurrentSameVehicleLastStoredMatchesLastPublished(t *testing.T) {
 		t.Fatalf("last publication differs from latest key: %+v %+v %v", stored, last, err)
 	}
 }
+
+func TestWebSocketBootstrapDeliversLaterCommitWithEarlierReceivedAt(t *testing.T) {
+	s, _, srv := harness(t)
+	initial := Position{VehicleID: "demo-a", Lat: 30.353, Lng: 76.365, ReceivedAt: time.Now().UTC()}
+	if err := s.save(context.Background(), initial); err != nil {
+		t.Fatal(err)
+	}
+	conn := connect(t, srv.URL)
+	snapshot := readEvent(t, conn)
+	if snapshot["type"] != "vehicle.snapshot" || len(snapshot["vehicles"].([]any)) != 1 {
+		t.Fatalf("snapshot=%v", snapshot)
+	}
+	// An earlier request may generate its server timestamp, wait for Redis,
+	// and commit after a later request. Simulate that legitimate scheduling
+	// order at the store boundary; the public API still rejects client time.
+	delayed := Position{VehicleID: "demo-a", Lat: 30.354, Lng: 76.366, ReceivedAt: initial.ReceivedAt.Add(-time.Millisecond)}
+	if err := s.save(context.Background(), delayed); err != nil {
+		t.Fatal(err)
+	}
+	stored, err := s.latest(context.Background(), delayed.VehicleID)
+	if err != nil || stored.Lat != delayed.Lat {
+		t.Fatalf("latest=%+v err=%v", stored, err)
+	}
+	event := readEvent(t, conn)
+	if event["type"] != "vehicle.location" || event["lat"] != delayed.Lat || event["receivedAt"] != delayed.ReceivedAt.Format(time.RFC3339Nano) {
+		t.Fatalf("later committed update was lost: %v", event)
+	}
+}

@@ -26,6 +26,9 @@ Redis persistence is disabled in the application Compose configuration.
 contains the snapshot fields; later `vehicle.location` events contain only type,
 vehicleId, coordinates, receivedAt and optional heading/accuracy. Only explicit
 allowed browser origins connect; native test clients send an allowed Origin.
+Connection bootstrap suppresses exact snapshot duplicates and consumes buffered
+updates in Redis publication order. Request timestamps may be equal or inverted
+before the atomic commit; they control freshness, not event ordering.
 
 Each process allows 128 viewers with 32 buffered messages per viewer. Slow
 viewers disconnect, and the UI reconnects with a fresh snapshot. Redis pub/sub

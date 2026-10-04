@@ -1,5 +1,5 @@
 import {z} from 'zod';
-export const objectId = z.string().regex(/^[a-f0-9]{24}$/i);
+export const objectId = z.string().regex(/^[a-f0-9]{24}$/i).transform(id => id.toLowerCase());
 const password = z.string().min(12).refine(s => Buffer.byteLength(s, 'utf8') <= 72);
 const email = z.string().trim().toLowerCase().email().max(254);
 export const registration = z.strictObject({name: z.string().trim().min(1).max(80), email, password});

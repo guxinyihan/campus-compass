@@ -113,8 +113,9 @@ func (s *Service) websocket(w http.ResponseWriter, r *http.Request) {
 	if conn.WriteJSON(initial) != nil {
 		return
 	}
-	// Updates that were buffered during bootstrap can precede a position in
-	// the snapshot. Drop those duplicates so connecting cannot move backward.
+	// Suppress exact snapshot duplicates, then catch up buffered events in
+	// Redis publication order. Request timestamps can precede a later commit;
+	// comparing them would discard accepted updates during bootstrap.
 	bootstrap := make(map[string]Position)
 	for _, p := range snapshot.Vehicles {
 		bootstrap[p.VehicleID] = p
@@ -131,7 +132,7 @@ func (s *Service) websocket(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			if initial, exists := bootstrap[event.VehicleID]; exists {
-				if event.ReceivedAt.Before(initial.ReceivedAt) || reflect.DeepEqual(event.Position, initial) {
+				if reflect.DeepEqual(event.Position, initial) {
 					continue
 				}
 				delete(bootstrap, event.VehicleID)

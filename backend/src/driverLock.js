@@ -3,7 +3,7 @@
 const pending = new Map();
 export async function withDriverLock(id, operation) {
   if (!id) return operation();
-  const key = String(id);
+  const key = String(id).toLowerCase();
   const previous = pending.get(key) || Promise.resolve();
   const current = previous.catch(() => {}).then(operation);
   pending.set(key, current);
