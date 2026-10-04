@@ -489,3 +489,88 @@ after local release gates passed. `upstream` remains intact and `origin` points
 to this new repository. Publication and the first successful hosted run are
 observed results; the final documentation commit receives its own subsequent
 CI verification.
+
+## 54. Dependency-security maintenance — 2026-10-05
+
+This maintenance pass starts from reviewed commit
+`ee0389464bb332e3e86443d2e3a7cceaa2f1b837` and preserves the verified architecture,
+application source, tests, canonical campus data and service contracts. Full
+triage, package chains, individual advisories, reachability evidence and minimum
+fixed versions are recorded in [DEPENDENCY_SECURITY_AUDIT.md](docs/DEPENDENCY_SECURITY_AUDIT.md).
+
+| Audit measurement | Frontend | Node API |
+| --- | --- | --- |
+| Previously reviewed CI / fresh successful full baseline | 20: 2 low, 6 moderate, 12 high | 2 high |
+| Fresh baseline, production only | 3 high package records | 1 high package record |
+| Final full audit | 0 in all severity categories | 0 in all severity categories |
+| Final production-only audit | 0 in all severity categories | 0 in all severity categories |
+
+The Node production advisory is `jsonwebtoken -> jws`, not MongoDB test tooling.
+The affected `createVerify()` path is absent: the application uses
+`jwt.verify()` with fixed secrets, explicitly excluded by the advisory. React
+Router advisories are likewise constrained by the existing declarative
+`BrowserRouter`, static navigation targets, and absence of framework/SSR
+endpoints. They were still upgraded. Vite's network-facing development server
+has an applicable Windows file-serving risk; it is absent from the production
+Nginx image but warranted a patched tooling version. Counts describe affected
+package records rather than independent exploitable production defects.
+
+Frontend locked upgrades: React Router DOM **7.5.2 -> 7.18.4**, Vite
+**5.4.11 -> 6.4.3**, Vitest **3.2.7 -> 4.1.11**, React plugin
+**4.3.3 -> 4.7.0**, and ESLint / `@eslint/js` **9.14.0 -> 9.39.5**, with
+compatible fixes to vulnerable Babel, CSS, build, lint and test transitives.
+React/DOM **18.3.1**, Leaflet **1.9.4**, React Leaflet **4.2.1**, and jsdom
+**26.1.0** remain unchanged. The API changes only its lockfile: `jws`
+**3.2.2 -> 3.2.3**, its required `jwa` **1.4.1 -> 1.4.2**, and lint-only
+`brace-expansion` **1.1.11 -> 1.1.21**. No new dependency overrides were added.
+
+The Vite 6 and Vitest 4 migration guides and peer/Node requirements were checked.
+These were the smallest fixed major lines needed for the respective advisories;
+no application, test, or configuration compatibility repair was necessary.
+Both lockfiles were generated through intentional npm commands, followed by
+successful clean `npm ci` installs on Node **24.18.0**, npm **11.16.0**.
+`npm audit fix --force` was not used.
+
+Fresh local checks passed: frontend lint, **28 tests in eight files**, production
+build, complete dependency-tree validation; API lint and **14 tests, zero
+skips**, including bcrypt, registration/role injection, admin authorization,
+assignment uniqueness, purpose-bound grants and MongoDB index/health behavior;
+Python dependency consistency, Ruff lint/format, **75 routing tests**, campus
+data validation, source-boundary and current release-source/license scans.
+The known Starlette test-client deprecation warning remains. CI now runs
+`npm audit --omit=dev --audit-level=high` for both npm projects; both exact
+commands pass locally. No test or existing release gate was weakened.
+
+All five application images rebuilt with Docker Engine **29.8.2** / Compose
+**5.6.0**. The updated API/frontend containers were recreated using the existing
+base runtime Compose configuration; all **seven services are healthy**. Runtime
+inspection confirms patched `jws` **3.2.3**, `jwa` **1.4.2**, and no shipped
+ESLint, Supertest or MongoDB memory-server tooling. Linux Go **1.26.5** vet and
+race tests passed with actual Redis **7.4.7**: **11 top-level tests**, **13
+authorization rejection subcases**, no skips or races. Python routing, GraphHopper
+integration and Go tracking source remain unchanged.
+
+Actual service acceptance passed before and after outage recovery: local campus
+search -> GraphHopper walking route (**411.799 m**, **296.496 s**, **six
+instructions**); Mongo/admin -> driver assignment -> short-lived Node grant ->
+Go publish -> Redis -> WebSocket. Cross-vehicle grants and access-token
+substitution are rejected without changing Redis latest state. Four existing
+Chrome workflows passed (**52.0 s**, no skips): desktop/tablet/mobile viewports,
+GPS-denied manual navigation, real admin UI, and real driver publishing/watch
+cleanup/marker movement/stale handling. Network assertions continue to reject
+public Nominatim and obsolete service calls. Visitor-location boundaries and
+geolocation cleanup tests remain intact.
+
+The existing finite simulator additionally passed three authorized writes,
+matching Redis/WebSocket data and browser movement, actual **30-second stale**
+and **120-second TTL/offline** behavior, expiry **404**, and marker removal.
+The actual GraphHopper outage produced safe **503/504** errors and usable browser
+controls; recovery and subsequent service acceptance passed with all seven
+services healthy. Seven fresh screenshots were retained outside the repository;
+the original tracked captures were restored byte-for-byte.
+
+All local gates passed before the requested push. Actual hosted CI and the final
+maintenance status are recorded after that run completes. There are no remaining
+npm advisories or no-fix exceptions. ESLint 9 emits an upstream
+support-deprecation warning; retaining its compatible major avoids unrelated
+plugin/lint migration.

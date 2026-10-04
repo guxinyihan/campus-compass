@@ -242,6 +242,8 @@ Acceptance mutates synthetic records; use a disposable local database. See [vali
 
 [GitHub Actions](.github/workflows/ci.yml) checks frontend lint/tests/build, Node tests with MongoDB, Python lint/tests, Go race tests with real Redis and repository config/data/source checks. All five jobs passed in [actual run 37210523326](https://github.com/guxinyihan/campus-compass/actions/runs/37210523326) on release commit `f91b690`. Hosted routing unit tests mock the engine; real GraphHopper and full-browser acceptance were verified separately against local containers.
 
+Dependency updates are checked with npm audit; CI blocks high or critical findings in production dependencies. See the [dependency audit](docs/DEPENDENCY_SECURITY_AUDIT.md).
+
 ## Accessibility
 
 UI controls have labels, keyboard-operable forms, visible focus, textual statuses and walking instructions. Denied GPS permits manual navigation. Desktop/tablet/mobile checks are not a comprehensive accessibility certification.
