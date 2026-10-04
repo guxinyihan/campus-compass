@@ -27,10 +27,18 @@ source; this ledger describes the current implementation.
 | Compose client | 2.39.4 | Configuration validation only; no usable Docker engine |
 | Production Redis target | 7.4.7-alpine | Configured in Compose/CI; execution still unverified |
 
-The local environment has no usable Docker daemon or configured WSL runtime.
+The local environment initially had no usable Docker daemon or configured WSL runtime.
 A standalone Compose client can resolve YAML and environment variables without
 building images or starting containers. Its successful configuration check does
 not establish container compatibility, readiness or networking.
+
+After the user authorized direct environment setup, the existing Docker Desktop
+4.83 installation was found and started, VirtualMachinePlatform was enabled,
+and WSL 3.0.1 installed successfully. Windows explicitly requires restart before
+the feature takes effect. Docker client 29.6.2 and bundled Compose 5.3.1 are
+available; no usable Docker server/container acceptance is claimed yet. See
+[Windows setup checkpoint](WINDOWS_CONTAINER_SETUP.md) for performed actions and
+resume commands. The application/test evidence below remains unchanged.
 
 The old Windows Redis binary exists only as local test tooling outside the active
 project; it is not a production dependency. Native Redis evidence is useful but
