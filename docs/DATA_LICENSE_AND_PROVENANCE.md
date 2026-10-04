@@ -4,6 +4,12 @@ Audit date: 2026-10-04. Source inspected: MapMitra commit `1d5420787b2f5a7a42b2a
 
 ## Audited original files
 
+The following SHA-256 values describe the audited **Windows checkout bytes**
+(CRLF, produced by `core.autocrlf=true`), not the original LF Git blobs. The
+canonical files preserve those audited bytes; narrowly scoped `.gitattributes`
+entries disable newline conversion for them so their hashes stay identical on
+Windows/Linux checkouts and in container build contexts.
+
 | File | Evidence and origin | SHA-256 |
 | --- | --- | --- |
 | `routing-backend/graphhopper/thapar_map.osm` | OSM XML 0.6; `openstreetmap-cgimap 2.0.1` generator; explicit OpenStreetMap/contributors copyright, attribution URL and ODbL URL. 4,100 nodes, 455 ways, 10 relations. | `b3857f0c38c2fb481626e86fe086df1edd2b3f1f41469bc91dc060817f430230` |
@@ -11,6 +17,12 @@ Audit date: 2026-10-04. Source inspected: MapMitra commit `1d5420787b2f5a7a42b2a
 | `frontend/public/thaparMap.geojson` | JOSM FeatureCollection; 395 features, 106 named features; all 3,465 unique coordinate pairs exactly match OSM nodes. Strong evidence of OSM derivation. | `ebfd58f3ad294ed358069f37448e98772d0b753e6c99d0366cf4e4b80ad3df3c` |
 
 All three enter the currently retained file history in `df8d9e5` (2024-12-22, "Add files via upload"). Git does not document the original export command, extraction date, edits, contributor permissions for local additions, or a campus survey. OSM object timestamps span 2011-02-09 through 2024-12-04; those are object edit timestamps, **not** a certified extraction date or evidence that the map is currently accurate. A `source=Local Knowledge` feature remains OSM-derived; that tag does not grant separate ownership.
+
+For exact historical comparison, the foundation commit's LF Git blob SHA-256
+values are OSM `fdbe61816da20503ba94bda963e91919d1496e4c936b718efdb49bad6f9e6be2`,
+API GeoJSON `d5ccc6635e57f8c51ffd2e14ef490005c2c8b76dd9e383882608073bd9c63302`,
+frontend GeoJSON `ec8d090c82b12ffa174276d9f9b2ac31a49ff24d2b295e50e4fd4824c5bc25a2`.
+The newline difference does not change geometry, properties or licensing.
 
 The XML's declared extract envelope is latitude 30.35012–30.35864, longitude 76.35846–76.37395. Complete OSM ways include nodes outside it; actual node bounds are latitude 30.3474352–30.3632701, longitude 76.3500425–76.3951185. GeoJSON declared bounds are longitude 76.3582–76.37429, latitude 30.3501–30.3588. Do not mistake extract bounds for a surveyed campus boundary.
 

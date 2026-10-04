@@ -1,0 +1,4 @@
+# Preserve the audited canonical database bytes and SHA-256 on every platform.
+# -text disables newline conversion; these files still receive ordinary text diffs.
+data/campus.geojson -text
+data/campus.osm -text

@@ -5,6 +5,9 @@ MapMitra `1d5420787b2f5a7a42b2a9ce17792ed7f97149fc`, copied without modifying it
 bytes. SHA-256: `ebfd58f3ad294ed358069f37448e98772d0b753e6c99d0366cf4e4b80ad3df3c`.
 `campus.osm` is the accompanying XML extract, also unchanged; SHA-256:
 `b3857f0c38c2fb481626e86fe086df1edd2b3f1f41469bc91dc060817f430230`.
+These are the audited Windows checkout bytes, including CRLF newlines;
+`.gitattributes` preserves them across platforms. The original LF Git blob hashes
+are recorded separately in the detailed provenance document.
 
 © OpenStreetMap contributors. These databases are under
 [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), with
