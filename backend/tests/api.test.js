@@ -93,6 +93,19 @@ test('driver uniqueness holds under concurrent assignments; assigned role cannot
   assert.equal(await Vehicle.countDocuments({assignedDriver: driver.id}), 1);
   await request(app).patch(`/api/admin/users/${driver.id}/role`).set(auth(adminToken)).send({role: 'student'}).expect(409);
 });
+test('concurrent role demotion and vehicle assignment preserve the driver invariant', async () => {
+  for (let i = 0; i < 8; i++) {
+    const candidate = await User.create({name: 'Race Driver', email: `race-${i}@example.test`, passwordHash: 'unused-test-hash', role: 'driver'});
+    const results = await Promise.all([
+      request(app).patch(`/api/admin/users/${candidate.id}/role`).set(auth(adminToken)).send({role: 'student'}),
+      request(app).post('/api/admin/vehicles').set(auth(adminToken)).send({displayName: 'Race Shuttle', code: `RACE-${i}`, assignedDriver: candidate.id}),
+    ]);
+    const current = await User.findById(candidate.id);
+    const count = await Vehicle.countDocuments({assignedDriver: candidate.id});
+    assert.equal(count, current.role === 'driver' ? 1 : 0);
+    assert.ok(results.some(r => [409, 422].includes(r.status)));
+  }
+});
 test('tracking issuance is short-lived purpose-bound driver-bound and vehicle-bound', async () => {
   await request(app).post(`/api/vehicles/${vehicle.vehicleId}/tracking-token`).set(auth(studentToken)).expect(403);
   const response = await request(app).post(`/api/vehicles/${vehicle.vehicleId}/tracking-token`).set(auth(driverToken)).expect(200);

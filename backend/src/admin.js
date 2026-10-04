@@ -1,6 +1,7 @@
 import express from 'express';
 import {User, Vehicle, Notice, publicUser, publicVehicle, publicNotice} from './models.js';
 import {ApiFailure, parse, objectId, roleChange, vehicleInput, vehiclePatch, noticeInput} from './validation.js';
+import {withDriverLock} from './driverLock.js';
 const missing = () => new ApiFailure(404, 'NOT_FOUND', 'The requested record does not exist.');
 export function adminRouter() {
   const admin = express.Router();
@@ -8,26 +9,36 @@ export function adminRouter() {
   admin.patch('/users/:id/role', async (req, res) => {
     const id = parse(objectId, req.params.id);
     const {role} = parse(roleChange, req.body);
-    const user = await User.findById(id);
-    if (!user) throw missing();
-    if (user.role === 'admin') throw new ApiFailure(403, 'PROTECTED_ADMIN', 'Admin roles are managed by the trusted seed process.');
-    if (role === 'student' && await Vehicle.exists({assignedDriver: id})) throw new ApiFailure(409, 'DRIVER_ASSIGNED', 'Unassign the driver before changing their role.');
-    user.role = role; await user.save(); res.json({user: publicUser(user)});
+    const user = await withDriverLock(id, async () => {
+      const found = await User.findById(id);
+      if (!found) throw missing();
+      if (found.role === 'admin') throw new ApiFailure(403, 'PROTECTED_ADMIN', 'Admin roles are managed by the trusted seed process.');
+      if (role === 'student' && await Vehicle.exists({assignedDriver: id})) throw new ApiFailure(409, 'DRIVER_ASSIGNED', 'Unassign the driver before changing their role.');
+      found.role = role; await found.save(); return found;
+    });
+    res.json({user: publicUser(user)});
   });
   async function checkDriver(id) {
     if (id && !await User.exists({_id: id, role: 'driver'})) throw new ApiFailure(422, 'INVALID_DRIVER', 'Select an existing driver account.');
   }
   admin.get('/vehicles', async (req, res) => res.json({vehicles: (await Vehicle.find().sort({code: 1}).limit(100)).map(v => publicVehicle(v, true))}));
   admin.post('/vehicles', async (req, res) => {
-    const input = parse(vehicleInput, req.body); await checkDriver(input.assignedDriver);
-    if (input.assignedDriver === null) delete input.assignedDriver;
-    const vehicle = await Vehicle.create(input); res.status(201).json({vehicle: publicVehicle(vehicle, true)});
+    const input = parse(vehicleInput, req.body);
+    const vehicle = await withDriverLock(input.assignedDriver, async () => {
+      await checkDriver(input.assignedDriver);
+      if (input.assignedDriver === null) delete input.assignedDriver;
+      return Vehicle.create(input);
+    });
+    res.status(201).json({vehicle: publicVehicle(vehicle, true)});
   });
   admin.patch('/vehicles/:id', async (req, res) => {
-    const id = parse(objectId, req.params.id); const input = parse(vehiclePatch, req.body); await checkDriver(input.assignedDriver);
-    const update = {$set: input};
-    if (input.assignedDriver === null) { delete input.assignedDriver; update.$unset = {assignedDriver: 1}; }
-    const vehicle = await Vehicle.findByIdAndUpdate(id, update, {returnDocument: 'after', runValidators: true});
+    const id = parse(objectId, req.params.id); const input = parse(vehiclePatch, req.body);
+    const vehicle = await withDriverLock(input.assignedDriver, async () => {
+      await checkDriver(input.assignedDriver);
+      const update = {$set: input};
+      if (input.assignedDriver === null) { delete input.assignedDriver; update.$unset = {assignedDriver: 1}; }
+      return Vehicle.findByIdAndUpdate(id, update, {returnDocument: 'after', runValidators: true});
+    });
     if (!vehicle) throw missing(); res.json({vehicle: publicVehicle(vehicle, true)});
   });
   admin.delete('/vehicles/:id', async (req, res) => {
